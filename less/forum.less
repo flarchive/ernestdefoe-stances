@@ -1,0 +1,939 @@
+// Stances. Text colours come from Flarum's CSS properties, so blocks follow light, dark, the
+// coloured header and themes. The two side colours a theme can't lend us are set here for light
+// and dark; they also differ in lightness, so they read apart without colour.
+
+.StanceCard,
+.StanceSide,
+.StanceFilter,
+.StancesPage,
+.StanceModal,
+.StanceVotersModal,
+.StancesNav-count,
+.StancesNeedVote {
+  --stance-0: #2563a8;
+  --stance-0-text: #1d4f8c;
+  --stance-0-bg: rgba(37, 99, 168, 0.12);
+  --stance-1: #c2620f;
+  --stance-1-text: #8a3f06;
+  --stance-1-bg: rgba(194, 98, 15, 0.13);
+  --stance-star: #d97706;
+
+  [data-theme^='dark'] & {
+    --stance-0: #6aa8ef;
+    --stance-0-text: #9cc6f5;
+    --stance-0-bg: rgba(106, 168, 239, 0.16);
+    --stance-1: #f0a35c;
+    --stance-1-text: #f6c08c;
+    --stance-1-bg: rgba(240, 163, 92, 0.16);
+    --stance-star: #fbbf24;
+  }
+}
+
+// ---------------------------------------------------------------- the block
+
+.StanceHolder:empty {
+  display: none;
+}
+
+.StanceCard {
+  margin: 12px 0 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--control-bg);
+  border-radius: calc(var(--border-radius) * 1.5);
+  background: var(--body-bg);
+  color: var(--text-color);
+  text-align: left;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  white-space: normal;
+
+  &[aria-busy='true'] {
+    opacity: 0.75;
+  }
+
+  &--featured {
+    margin: 0 0 20px;
+    background: var(--control-bg);
+    border-color: transparent;
+  }
+}
+
+.StanceCard-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  min-height: 24px;
+}
+
+.StanceCard-kind {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted-color);
+}
+
+.StanceCard-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--control-bg);
+  color: var(--control-color);
+
+  .StanceCard--featured & {
+    background: var(--body-bg);
+  }
+}
+
+.StanceCard-menu .Button {
+  color: var(--muted-color);
+}
+
+.Post-body .StanceCard-question,
+.StanceCard-question {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--heading-color, var(--text-color));
+  overflow-wrap: anywhere;
+}
+
+// Two-button types: plain buttons until results show, then bars you can still click.
+.StanceCard-choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+
+  @media @phone {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.StanceChoice {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: var(--border-radius);
+  border: 2px solid var(--stance-c);
+  background: var(--body-bg);
+  color: var(--stance-c-text);
+  font: inherit;
+  font-weight: 600;
+  overflow: hidden;
+  isolation: isolate;
+  cursor: pointer;
+  text-align: left;
+
+  &--0 {
+    --stance-c: var(--stance-0);
+    --stance-c-text: var(--stance-0-text);
+    --stance-c-bg: var(--stance-0-bg);
+  }
+  &--1 {
+    --stance-c: var(--stance-1);
+    --stance-c-text: var(--stance-1-text);
+    --stance-c-bg: var(--stance-1-bg);
+  }
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    background: var(--stance-c-bg, var(--control-bg));
+  }
+  &:disabled {
+    cursor: default;
+  }
+
+  .StanceCard-choices--bars & {
+    justify-content: space-between;
+    border-color: var(--control-bg);
+
+    &.is-selected {
+      border-color: var(--stance-c);
+    }
+  }
+
+  .icon {
+    margin-right: 2px;
+  }
+}
+
+.StanceChoice-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--stance-fill, 0%);
+  background: var(--stance-c);
+  opacity: 0.2;
+  z-index: -1;
+  transition: width 0.4s ease;
+}
+
+.StanceChoice-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.StanceChoice-count {
+  flex: none;
+  font-size: 13px;
+}
+
+// This or That: two tiles, each with an optional picture.
+.StanceCard-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.StanceTile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0;
+  border: 2px solid var(--control-bg);
+  border-radius: var(--border-radius);
+  background: var(--body-bg);
+  color: var(--text-color);
+  font: inherit;
+  text-align: left;
+  overflow: hidden;
+  cursor: pointer;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    border-color: var(--primary-color);
+  }
+  &.is-selected {
+    border-color: var(--primary-color);
+  }
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.StanceTile-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: var(--control-bg);
+}
+
+.StanceTile-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 12px;
+}
+
+.StanceTile-name {
+  min-width: 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.StanceTile-count {
+  flex: none;
+  font-size: 13px;
+  color: var(--muted-color);
+}
+
+.StanceTile-bar {
+  display: block;
+  height: 4px;
+  width: var(--stance-fill, 0%);
+  background: var(--primary-color);
+  transition: width 0.4s ease;
+}
+
+// Rating
+.StanceCard-ratingTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+}
+
+.StanceStars {
+  display: flex;
+}
+
+.StanceStar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--stance-star);
+  font-size: 24px;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+  }
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    border-radius: var(--border-radius);
+  }
+}
+
+.StanceCard-average {
+  display: flex;
+  flex-direction: column;
+  color: var(--text-color);
+
+  strong {
+    font-size: 22px;
+    line-height: 1.1;
+  }
+  span {
+    font-size: 12px;
+    color: var(--muted-color);
+  }
+}
+
+.StanceHistogram {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 4px 10px;
+  align-items: center;
+  margin-top: 10px;
+  max-width: 420px;
+  font-size: 12px;
+  color: var(--muted-color);
+}
+
+.StanceHistogram-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--control-bg);
+  overflow: hidden;
+
+  i {
+    display: block;
+    height: 100%;
+    background: var(--stance-star);
+  }
+}
+
+.StanceHistogram-count {
+  text-align: right;
+  min-width: 2ch;
+}
+
+// The line under every block
+.StanceCard-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--muted-color);
+}
+
+.StanceCard-you {
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+html:not(#x-hi) .StanceCard .Button--link.StanceCard-link {
+  padding: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--link-color, var(--primary-color));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+// "Show replies from"
+.StanceFilter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--control-bg);
+
+  .StanceVotersModal & {
+    margin: 0 0 12px;
+    padding: 0;
+    border: 0;
+  }
+}
+
+.StanceFilter-label {
+  font-size: 13px;
+  color: var(--muted-color);
+  margin-right: 2px;
+}
+
+.StanceFilter-chip {
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--control-bg);
+  background: var(--body-bg);
+  color: var(--control-color);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &.is-active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: var(--button-primary-color, #fff);
+  }
+}
+
+
+// ---------------------------------------------------------------- badges beside replies
+
+.StanceSide {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 9px 1px 7px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 18px;
+  vertical-align: middle;
+  white-space: nowrap;
+  max-width: 14em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: var(--control-bg);
+  color: var(--control-color);
+
+  &--0 {
+    background: var(--stance-0-bg);
+    color: var(--stance-0-text);
+    .StanceSide-dot {
+      background: var(--stance-0);
+    }
+  }
+  &--1 {
+    background: var(--stance-1-bg);
+    color: var(--stance-1-text);
+    .StanceSide-dot {
+      background: var(--stance-1);
+    }
+  }
+  &--changed {
+    margin-left: 4px;
+    padding: 1px 8px;
+    font-weight: 600;
+    color: var(--muted-color);
+    cursor: help;
+  }
+}
+
+.StanceSide-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.PostHeader .item-stanceSide {
+  display: inline-flex;
+  align-items: center;
+}
+
+// ---------------------------------------------------------------- composer pill
+
+// Core gives every header item margin-right: -4px, so the title before us overlaps by 4px:
+// 19px on the left leaves 15px of real space, and our own right margin replaces the -4px.
+// Vertical alignment copies FoF Polls' "Add Poll" (measured: the two labels share top and bottom).
+.ComposerBody-header > li.item-stances {
+  margin-left: 19px;
+  margin-right: 15px;
+
+  // Phones stack the header items as full-width rows.
+  @media @phone {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
+.StancePill-label {
+  display: inline-block;
+  padding: 0.1em 0.5em;
+  font-size: 85%;
+  font-weight: 600;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--primary-color);
+  background: var(--body-bg);
+  color: var(--control-color);
+  vertical-align: bottom;
+
+  &--none {
+    border: 1px dotted var(--muted-color);
+    background: transparent;
+    color: var(--muted-color);
+  }
+}
+
+// ---------------------------------------------------------------- dialogs
+
+.StanceModal-types,
+.StanceModal-labels,
+.StanceModal-segments {
+  // Flarum's Form-group is a column flexbox; without this they shrink to their content.
+  align-self: stretch;
+  width: 100%;
+}
+
+.StanceModal-types {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(~'min(120px, 100%)', 1fr));
+  gap: 8px;
+}
+
+.StanceModal-type {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-height: 64px;
+  padding: 10px 6px;
+  border: 2px solid var(--control-bg);
+  border-radius: var(--border-radius);
+  background: var(--body-bg);
+  color: var(--control-color);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  .icon {
+    font-size: 18px;
+  }
+  &.is-active {
+    border-color: var(--primary-color);
+    color: var(--text-color);
+  }
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.StanceModal-labels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 12px;
+
+  @media @phone {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.StanceModal-picture {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+
+  img {
+    width: 100%;
+    max-height: 140px;
+    object-fit: cover;
+    border-radius: var(--border-radius);
+  }
+}
+
+.StanceModal-upload {
+  cursor: pointer;
+}
+
+.StanceModal-segments {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid var(--control-bg);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+.StanceModal-segment {
+  min-height: 40px;
+  padding: 4px 6px;
+  border: 0;
+  background: var(--body-bg);
+  color: var(--control-color);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  & + & {
+    border-left: 1px solid var(--control-bg);
+  }
+  &.is-active {
+    background: var(--primary-color);
+    color: var(--button-primary-color, #fff);
+  }
+}
+
+.StanceModal-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.StanceModal-check {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-weight: normal !important;
+  color: var(--text-color);
+  cursor: pointer;
+
+  input {
+    margin-top: 3px;
+    flex: none;
+  }
+  small {
+    display: block;
+    color: var(--muted-color);
+    font-size: 12px;
+  }
+  &.is-disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.StanceModal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.StanceComposerModal-list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+}
+
+.StanceComposerModal-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--control-bg);
+  color: var(--text-color);
+}
+
+.StanceComposerModal-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.StanceComposerModal-question {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.StanceComposerModal-status,
+.StanceComposerModal-empty {
+  font-size: 12px;
+  color: var(--muted-color);
+}
+
+.StanceComposerModal-actions {
+  display: flex;
+  flex: none;
+}
+
+.StanceVoters {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.StanceVoters-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--control-bg);
+}
+
+html:not(#x-hi) .StanceVoters-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: var(--text-color);
+  text-decoration: none;
+
+  .Avatar {
+    --size: 32px;
+    flex: none;
+  }
+}
+
+.StanceVoters-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.StanceVoters-empty {
+  color: var(--muted-color);
+}
+
+// ---------------------------------------------------------------- the Stances page and sidebar
+
+.StancesNav-count {
+  margin-left: 6px;
+  padding: 0 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--stance-1);
+  color: #fff;
+  [data-theme^='dark'] & {
+    color: #1a1206;
+  }
+}
+
+.StancesPage-header {
+  margin-bottom: 16px;
+}
+
+.StancesPage-title {
+  margin: 0 0 4px;
+  font-size: 20px;
+  color: var(--heading-color, var(--text-color));
+}
+
+.StancesPage-lead {
+  margin: 0;
+  color: var(--muted-color);
+}
+
+.StancesPage-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+
+  @media @phone {
+    .StancesPage-tabs {
+      flex-basis: 100%;
+    }
+  }
+
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.StancesPage-tabs {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.StancesPage-tab {
+  flex: none;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 0;
+  background: var(--control-bg);
+  color: var(--control-color);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &.is-active {
+    background: var(--primary-color);
+    color: var(--button-primary-color, #fff);
+  }
+}
+
+.StancesPage-count {
+  margin-left: 6px;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.StancesPage-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.StancesPage-row {
+  border-top: 1px solid var(--control-bg);
+}
+
+.StancesPage-rowMain {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) minmax(0, 200px) auto auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 0;
+
+  @media @phone {
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 8px 12px;
+
+    .StancesPage-leading {
+      grid-column: 2;
+    }
+    .StancesPage-votes {
+      grid-column: 2;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      text-align: left;
+
+      strong {
+        display: inline;
+      }
+    }
+    .StancesPage-toggle {
+      grid-column: 2;
+      justify-self: start;
+    }
+  }
+}
+
+.StancesPage-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--control-bg);
+  color: var(--control-color);
+}
+
+.StancesPage-text {
+  min-width: 0;
+}
+
+html:not(#x-hi) .StancesPage-question {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-color);
+  overflow-wrap: anywhere;
+}
+
+.StancesPage-needs {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  vertical-align: middle;
+  background: var(--stance-1-bg);
+  color: var(--stance-1-text);
+}
+
+.StancesPage-sub {
+  margin-top: 3px;
+  font-size: 13px;
+  color: var(--muted-color);
+  overflow-wrap: anywhere;
+}
+
+.StancesPage-leading {
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.StancesPage-mini {
+  display: block;
+  height: 8px;
+  margin-bottom: 4px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--stance-1);
+
+  i {
+    display: block;
+    height: 100%;
+    background: var(--stance-0);
+  }
+
+  &--pick {
+    background: var(--control-bg);
+    i {
+      background: var(--primary-color);
+    }
+  }
+}
+
+.StancesPage-hiddenResults {
+  font-weight: normal;
+  color: var(--muted-color);
+}
+
+.StancesPage-votes {
+  text-align: right;
+  font-size: 12px;
+  color: var(--muted-color);
+
+  strong {
+    display: block;
+    font-size: 16px;
+    color: var(--text-color);
+  }
+}
+
+.StancesPage-card {
+  padding: 0 0 12px;
+
+  .StanceCard {
+    margin-top: 0;
+  }
+}
+
+.StancesPage-empty,
+.StancesPage-note {
+  color: var(--muted-color);
+}
+
+.StancesPage-note {
+  margin-top: 16px;
+  font-size: 12px;
+}
+
+.StancesPage-more {
+  margin-top: 12px;
+}
+
+.StancesNeedVote {
+  color: var(--stance-1);
+}
